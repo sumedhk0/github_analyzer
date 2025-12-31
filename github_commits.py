@@ -223,7 +223,6 @@ AUTOMATIC SCORE CAPS - APPLY THESE STRICTLY:
 - No evidence of error handling or edge cases → cap code quality at 4
 - No tests or quality practices → subtract 1 from code quality
 - No complex algorithms or data structures → cap problem-solving at 4
-- No evidence of debugging or iteration → cap overall at 5
 - Only frontend OR only backend (not both) → note limited scope in assessment
 
 CRITICAL EVALUATION RULES:
