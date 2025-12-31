@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}GitHub Analyzer - Single User{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-white mb-4">GitHub Profile Analyzer</h1>
+        <p class="text-gray-400 text-lg">
+            Get a brutally honest assessment of any developer's GitHub profile.
+            <br>
+            <span class="text-yellow-400">Warning: Our AI is harsh. Expect honest feedback.</span>
+        </p>
+    </div>
+
+    <div class="bg-gray-800 rounded-lg p-8 shadow-xl">
+        <form action="/analyze" method="POST">
+            <div class="mb-6">
+                <label for="username" class="block text-sm font-medium text-gray-300 mb-2">
+                    GitHub Username
+                </label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="e.g., torvalds"
+                    class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+                    required
+                >
+            </div>
+
+            <button
+                type="submit"
+                class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200"
+            >
+                Analyze Profile
+            </button>
+        </form>
+    </div>
+
+    <div class="mt-8 text-center text-gray-500 text-sm">
+        <p>This tool analyzes commit history, code quality, and overall developer skills.</p>
+        <p class="mt-2">Scores are calibrated to FAANG standards. Most developers score 4-5/10.</p>
+    </div>
+</div>
+{% endblock %}

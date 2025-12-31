@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis: {{ username }}{% endblock %}
+
+{% block content %}
+{% if error %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-red-900 border border-red-700 rounded-lg p-6 text-center">
+        <h2 class="text-xl font-bold text-red-300 mb-2">Error</h2>
+        <p class="text-red-200">{{ error }}</p>
+        <a href="/" class="mt-4 inline-block text-green-400 hover:text-green-300">&larr; Try again</a>
+    </div>
+</div>
+{% else %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-white">{{ username }}</h1>
+            <p class="text-gray-400">{{ total_repos }} repositories &bull; {{ total_commits }} commits analyzed</p>
+        </div>
+        <a href="/" class="text-green-400 hover:text-green-300">&larr; Analyze another</a>
+    </div>
+
+    <!-- Overall Score -->
+    <div class="bg-gray-800 rounded-lg p-6 mb-6 text-center">
+        <p class="text-gray-400 text-sm uppercase tracking-wide mb-2">Overall Score</p>
+        <div class="text-6xl font-bold {% if analysis.overall_score >= 7 %}text-green-400{% elif analysis.overall_score >= 5 %}text-yellow-400{% else %}text-red-400{% endif %}">
+            {{ analysis.overall_score }}<span class="text-2xl text-gray-500">/10</span>
+        </div>
+        <p class="text-gray-300 mt-4">
+            {{ analysis.experience_level }} &bull; {{ analysis.experience_years }} years experience
+        </p>
+        <p class="text-gray-400 mt-1">Specialization: {{ analysis.specialization }}</p>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        {% set metrics = [
+            ('Technical Expertise', analysis.metrics.technical_expertise),
+            ('Code Quality', analysis.metrics.code_quality),
+            ('Problem-Solving', analysis.metrics.problem_solving),
+            ('Consistency', analysis.metrics.consistency),
+            ('Communication', analysis.metrics.communication)
+        ] %}
+        {% for name, metric in metrics %}
+        {% if metric %}
+        <div class="bg-gray-800 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-300 font-medium">{{ name }}</span>
+                <span class="text-2xl font-bold {% if metric.score >= 7 %}text-green-400{% elif metric.score >= 5 %}text-yellow-400{% else %}text-red-400{% endif %}">
+                    {{ metric.score }}
+                </span>
+            </div>
+            {% if metric.languages %}
+            <p class="text-xs text-gray-500 mb-1">Languages: {{ metric.languages | join(', ') }}</p>
+            {% endif %}
+            {% if metric.frameworks %}
+            <p class="text-xs text-gray-500 mb-1">Frameworks: {{ metric.frameworks | join(', ') }}</p>
+            {% endif %}
+            <ul class="text-sm text-gray-400 mt-2">
+                {% for obs in metric.observations[:2] %}
+                <li class="truncate">&bull; {{ obs }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Strengths & Weaknesses -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <!-- Strengths -->
+        <div class="bg-gray-800 rounded-lg p-6">
+            <h3 class="text-lg font-bold text-green-400 mb-4">Strengths</h3>
+            <ul class="space-y-2">
+                {% for strength in analysis.strengths %}
+                <li class="flex items-start">
+                    <span class="text-green-400 mr-2">+</span>
+                    <span class="text-gray-300">{{ strength }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Areas for Growth -->
+        <div class="bg-gray-800 rounded-lg p-6">
+            <h3 class="text-lg font-bold text-yellow-400 mb-4">Areas for Growth</h3>
+            <ul class="space-y-2">
+                {% for area in analysis.areas_for_growth %}
+                <li class="flex items-start">
+                    <span class="text-yellow-400 mr-2">-</span>
+                    <span class="text-gray-300">{{ area }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Red Flags -->
+    {% if analysis.red_flags %}
+    <div class="bg-red-900 bg-opacity-30 border border-red-700 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-bold text-red-400 mb-4">Red Flags</h3>
+        <ul class="space-y-2">
+            {% for flag in analysis.red_flags %}
+            <li class="flex items-start">
+                <span class="text-red-400 mr-2">!!</span>
+                <span class="text-red-200">{{ flag }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Role Fit -->
+    <div class="bg-gray-800 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-bold text-white mb-4">Role Fit Assessment</h3>
+        <div class="space-y-3">
+            {% for role, fit in analysis.role_fit.items() %}
+            <div class="flex items-start">
+                <span class="{% if 'Strong' in fit %}text-green-400{% elif 'Good' in fit or 'Moderate' in fit %}text-yellow-400{% else %}text-red-400{% endif %} mr-2 font-bold">
+                    {% if 'Strong' in fit %}+{% elif 'Good' in fit or 'Moderate' in fit %}o{% else %}-{% endif %}
+                </span>
+                <div>
+                    <span class="text-white font-medium">{{ role }}:</span>
+                    <span class="text-gray-400 ml-1">{{ fit }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="bg-gray-800 rounded-lg p-6">
+        <h3 class="text-lg font-bold text-white mb-4">Summary</h3>
+        <p class="text-gray-300 leading-relaxed">{{ analysis.summary }}</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

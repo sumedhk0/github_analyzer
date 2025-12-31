@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GitHub Analyzer{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading {
+            display: none;
+        }
+        .loading.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-gray-800 border-b border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-xl font-bold text-white">
+                        <span class="text-green-400">GitHub</span> Analyzer
+                    </a>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="/" class="px-3 py-2 rounded-md text-sm font-medium {% if request.path == '/' %}bg-gray-700 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %}">
+                        Single User
+                    </a>
+                    <a href="/match" class="px-3 py-2 rounded-md text-sm font-medium {% if request.path == '/match' %}bg-gray-700 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %}">
+                        Job Match
+                    </a>
+                    <a href="/search" class="px-3 py-2 rounded-md text-sm font-medium {% if request.path == '/search' %}bg-gray-700 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %}">
+                        Search GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading fixed inset-0 bg-gray-900 bg-opacity-75 items-center justify-center z-50">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-green-400 mx-auto mb-4"></div>
+            <p class="text-xl text-white">Analyzing... This may take a minute.</p>
+            <p class="text-gray-400 mt-2">Fetching commits and running AI analysis</p>
+        </div>
+    </div>
+
+    <script>
+        // Show loading on form submit
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function() {
+                document.getElementById('loading').classList.add('active');
+            });
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

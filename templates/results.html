@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Rankings{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Candidate Rankings</h1>
+            <p class="text-gray-400 mt-1">
+                {{ jd_requirements.title or 'Job Position' }} &bull;
+                {{ jd_requirements.level or 'Any level' }} &bull;
+                {{ results | length }} candidates evaluated
+            </p>
+        </div>
+        <a href="/{{ mode }}" class="text-green-400 hover:text-green-300">&larr; New search</a>
+    </div>
+
+    <!-- Job Requirements Summary -->
+    <div class="bg-gray-800 rounded-lg p-6 mb-6">
+        <h2 class="text-lg font-bold text-white mb-3">Job Requirements</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+                <span class="text-gray-500">Title:</span>
+                <span class="text-gray-300 ml-2">{{ jd_requirements.title or 'N/A' }}</span>
+            </div>
+            <div>
+                <span class="text-gray-500">Level:</span>
+                <span class="text-gray-300 ml-2">{{ jd_requirements.level or 'N/A' }}</span>
+            </div>
+            <div>
+                <span class="text-gray-500">Experience:</span>
+                <span class="text-gray-300 ml-2">{{ jd_requirements.years_experience or 'N/A' }} years</span>
+            </div>
+            <div>
+                <span class="text-gray-500">Domain:</span>
+                <span class="text-gray-300 ml-2">{{ jd_requirements.domain or 'N/A' }}</span>
+            </div>
+        </div>
+        {% if jd_requirements.required_skills %}
+        <div class="mt-3">
+            <span class="text-gray-500 text-sm">Required Skills:</span>
+            <div class="flex flex-wrap gap-2 mt-1">
+                {% for skill in jd_requirements.required_skills %}
+                <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs">{{ skill }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Results -->
+    {% if results %}
+    <div class="space-y-4">
+        {% for candidate in results %}
+        <div class="bg-gray-800 rounded-lg overflow-hidden">
+            <!-- Main Row -->
+            <div class="p-6 cursor-pointer hover:bg-gray-750" onclick="toggleDetails('candidate-{{ loop.index }}')">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <span class="text-2xl font-bold text-gray-500 w-12">#{{ loop.index }}</span>
+                        <div>
+                            <h3 class="text-xl font-bold text-white">{{ candidate.username }}</h3>
+                            <p class="text-gray-400 text-sm">{{ candidate.commits_analyzed }} commits analyzed</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-6">
+                        <!-- Job Fit Score -->
+                        <div class="text-center">
+                            <p class="text-xs text-gray-500 uppercase">Job Fit</p>
+                            <p class="text-3xl font-bold {% if candidate.analysis.job_fit_score >= 7 %}text-green-400{% elif candidate.analysis.job_fit_score >= 5 %}text-yellow-400{% else %}text-red-400{% endif %}">
+                                {{ candidate.analysis.job_fit_score }}
+                            </p>
+                        </div>
+
+                        <!-- Overall Score -->
+                        <div class="text-center">
+                            <p class="text-xs text-gray-500 uppercase">Overall</p>
+                            <p class="text-3xl font-bold {% if candidate.analysis.overall_score >= 7 %}text-green-400{% elif candidate.analysis.overall_score >= 5 %}text-yellow-400{% else %}text-red-400{% endif %}">
+                                {{ candidate.analysis.overall_score }}
+                            </p>
+                        </div>
+
+                        <!-- Recommendation Badge -->
+                        <div>
+                            {% set rec = candidate.analysis.recommendation | default('N/A') %}
+                            {% if 'RECOMMEND' in rec and 'MAYBE' not in rec %}
+                            <span class="px-3 py-1 bg-green-900 text-green-300 rounded-full text-sm font-medium">RECOMMEND</span>
+                            {% elif 'MAYBE' in rec %}
+                            <span class="px-3 py-1 bg-yellow-900 text-yellow-300 rounded-full text-sm font-medium">MAYBE</span>
+                            {% else %}
+                            <span class="px-3 py-1 bg-red-900 text-red-300 rounded-full text-sm font-medium">REJECT</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Expand Icon -->
+                        <svg class="w-6 h-6 text-gray-500 transform transition-transform" id="arrow-{{ loop.index }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Quick Info -->
+                <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                    {% if candidate.analysis.skill_match %}
+                    <div>
+                        <span class="text-gray-500">Skills Matched:</span>
+                        <span class="text-green-400 ml-1">{{ candidate.analysis.skill_match.matched | join(', ') or 'None' }}</span>
+                    </div>
+                    {% if candidate.analysis.skill_match.missing %}
+                    <div>
+                        <span class="text-gray-500">Missing:</span>
+                        <span class="text-red-400 ml-1">{{ candidate.analysis.skill_match.missing | join(', ') }}</span>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    <div>
+                        <span class="text-gray-500">Level:</span>
+                        <span class="text-gray-300 ml-1">{{ candidate.analysis.experience_level or 'N/A' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expanded Details -->
+            <div id="candidate-{{ loop.index }}" class="hidden border-t border-gray-700 p-6 bg-gray-850">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left Column -->
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-400 uppercase mb-3">Match Details</h4>
+                        <div class="space-y-2 text-sm">
+                            <div>
+                                <span class="text-gray-500">Level Match:</span>
+                                <span class="text-gray-300 ml-2">{{ candidate.analysis.level_match or 'N/A' }}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Domain Match:</span>
+                                <span class="text-gray-300 ml-2">{{ candidate.analysis.domain_match or 'N/A' }}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Specialization:</span>
+                                <span class="text-gray-300 ml-2">{{ candidate.analysis.specialization or 'N/A' }}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Experience:</span>
+                                <span class="text-gray-300 ml-2">{{ candidate.analysis.experience_years or 'N/A' }} years</span>
+                            </div>
+                        </div>
+
+                        {% if candidate.analysis.skill_match and candidate.analysis.skill_match.additional %}
+                        <h4 class="text-sm font-bold text-gray-400 uppercase mt-4 mb-2">Additional Skills</h4>
+                        <div class="flex flex-wrap gap-2">
+                            {% for skill in candidate.analysis.skill_match.additional %}
+                            <span class="px-2 py-1 bg-gray-700 text-gray-300 rounded text-xs">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Right Column -->
+                    <div>
+                        {% if candidate.analysis.strengths %}
+                        <h4 class="text-sm font-bold text-green-400 uppercase mb-2">Strengths</h4>
+                        <ul class="text-sm text-gray-300 space-y-1 mb-4">
+                            {% for s in candidate.analysis.strengths %}
+                            <li>+ {{ s }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+
+                        {% if candidate.analysis.weaknesses %}
+                        <h4 class="text-sm font-bold text-yellow-400 uppercase mb-2">Weaknesses</h4>
+                        <ul class="text-sm text-gray-300 space-y-1">
+                            {% for w in candidate.analysis.weaknesses %}
+                            <li>- {{ w }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Recommendation -->
+                <div class="mt-4 pt-4 border-t border-gray-700">
+                    <span class="text-gray-500 text-sm">Recommendation:</span>
+                    <span class="text-gray-300 ml-2">{{ candidate.analysis.recommendation or 'N/A' }}</span>
+                </div>
+
+                <!-- View Full Profile Link -->
+                <div class="mt-4">
+                    <a href="https://github.com/{{ candidate.username }}" target="_blank" class="text-green-400 hover:text-green-300 text-sm">
+                        View GitHub Profile &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-gray-800 rounded-lg p-8 text-center">
+        <p class="text-gray-400">No candidates were successfully evaluated.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleDetails(id) {
+    const details = document.getElementById(id);
+    const arrow = document.getElementById('arrow-' + id.split('-')[1]);
+
+    if (details.classList.contains('hidden')) {
+        details.classList.remove('hidden');
+        arrow.classList.add('rotate-180');
+    } else {
+        details.classList.add('hidden');
+        arrow.classList.remove('rotate-180');
+    }
+}
+</script>
+{% endblock %}

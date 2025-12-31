@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Search GitHub{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-white mb-4">Search GitHub</h1>
+        <p class="text-gray-400 text-lg">
+            Find developers on GitHub matching your criteria,
+            <br>
+            then rank them against your job description.
+        </p>
+    </div>
+
+    {% if error %}
+    <div class="bg-red-900 border border-red-700 rounded-lg p-4 mb-6">
+        <p class="text-red-200">{{ error }}</p>
+    </div>
+    {% endif %}
+
+    <div class="bg-gray-800 rounded-lg p-8 shadow-xl">
+        <form action="/search" method="POST">
+            <div class="mb-6">
+                <label for="job_description" class="block text-sm font-medium text-gray-300 mb-2">
+                    Job Description
+                </label>
+                <textarea
+                    id="job_description"
+                    name="job_description"
+                    rows="6"
+                    placeholder="Paste the job description here..."
+                    class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+                    required
+                ></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div>
+                    <label for="experience_level" class="block text-sm font-medium text-gray-300 mb-2">
+                        Experience Level
+                    </label>
+                    <select
+                        id="experience_level"
+                        name="experience_level"
+                        class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+                    >
+                        <option value="any">Any Level</option>
+                        <option value="junior">Junior (1-2 yrs)</option>
+                        <option value="mid">Mid-Level (3-5 yrs)</option>
+                        <option value="senior">Senior (5+ yrs)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="language" class="block text-sm font-medium text-gray-300 mb-2">
+                        Programming Language
+                    </label>
+                    <select
+                        id="language"
+                        name="language"
+                        class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+                    >
+                        <option value="">Any</option>
+                        <option value="python">Python</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="typescript">TypeScript</option>
+                        <option value="java">Java</option>
+                        <option value="go">Go</option>
+                        <option value="rust">Rust</option>
+                        <option value="c++">C++</option>
+                        <option value="c#">C#</option>
+                        <option value="ruby">Ruby</option>
+                        <option value="php">PHP</option>
+                        <option value="swift">Swift</option>
+                        <option value="kotlin">Kotlin</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="location" class="block text-sm font-medium text-gray-300 mb-2">
+                        Location
+                    </label>
+                    <input
+                        type="text"
+                        id="location"
+                        name="location"
+                        placeholder="e.g., San Francisco"
+                        class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+                    >
+                </div>
+
+                <div>
+                    <label for="max_candidates" class="block text-sm font-medium text-gray-300 mb-2">
+                        Max Candidates
+                    </label>
+                    <select
+                        id="max_candidates"
+                        name="max_candidates"
+                        class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+                    >
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+            </div>
+
+            <button
+                type="submit"
+                class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200"
+            >
+                Search & Rank Candidates
+            </button>
+        </form>
+    </div>
+
+    <div class="mt-8 text-center text-gray-500 text-sm">
+        <p>This will search GitHub for users matching your criteria,</p>
+        <p>then analyze and rank each candidate against the job description.</p>
+        <p class="mt-2 text-yellow-500">Note: This can take several minutes for many candidates.</p>
+    </div>
+</div>
+{% endblock %}
