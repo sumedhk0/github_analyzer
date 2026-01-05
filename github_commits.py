@@ -311,7 +311,7 @@ Provide your evaluation as a JSON object (no markdown formatting, just the raw J
     print("This may take a moment...\n")
 
     response = client.chat.completions.create(
-        model="xiaomi/mimo-v2-flash",
+        model="xiaomi/mimo-v2-flash:free",
         max_tokens=4096,
         messages=[
             {"role": "system", "content": system_prompt},
@@ -465,7 +465,7 @@ You must respond with a valid JSON object (no markdown, no code blocks) with thi
 Be precise. If something isn't mentioned, use empty arrays or "unspecified"."""
 
     response = client.chat.completions.create(
-        model="xiaomi/mimo-v2-flash",
+        model="xiaomi/mimo-v2-flash:free",
         max_tokens=1024,
         messages=[
             {"role": "system", "content": system_prompt},
@@ -604,7 +604,7 @@ COMMIT HISTORY:
 Provide evaluation as JSON."""
 
     response = client.chat.completions.create(
-        model="xiaomi/mimo-v2-flash",
+        model="xiaomi/mimo-v2-flash:free",
         max_tokens=2048,
         messages=[
             {"role": "system", "content": system_prompt},
