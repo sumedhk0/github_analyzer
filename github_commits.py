@@ -17,7 +17,7 @@ import time
 import json
 from datetime import datetime
 from dotenv import load_dotenv
-import anthropic
+from openai import OpenAI
 
 load_dotenv()
 
@@ -149,7 +149,7 @@ def format_commit(commit, repo_name, patch=None):
 
 
 def prepare_commits_for_analysis(all_commits, patches):
-    """Prepare commit data for Claude analysis."""
+    """Prepare commit data for LLM analysis."""
     commit_summaries = []
     for i, item in enumerate(all_commits):
         commit = item["commit"]
@@ -174,9 +174,12 @@ def prepare_commits_for_analysis(all_commits, patches):
     return commit_summaries
 
 
-def analyze_commits_with_claude(username, commit_summaries):
-    """Send commit data to Claude for analysis and get a detailed evaluation."""
-    client = anthropic.Anthropic()  # Uses ANTHROPIC_API_KEY from env
+def analyze_commits_with_llm(username, commit_summaries):
+    """Send commit data to LLM for analysis and get a detailed evaluation."""
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.environ.get("OPENROUTER_API_KEY")
+    )
 
     # Build the commit data string
     commits_text = ""
@@ -304,19 +307,19 @@ COMMIT HISTORY:
 
 Provide your evaluation as a JSON object (no markdown formatting, just the raw JSON)."""
 
-    print("\nAnalyzing commits with Claude AI...")
+    print("\nAnalyzing commits with AI...")
     print("This may take a moment...\n")
 
-    message = client.messages.create(
-        model="claude-sonnet-4-20250514",
+    response = client.chat.completions.create(
+        model="xiaomi/mimo-v2-flash",
         max_tokens=4096,
         messages=[
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
-        ],
-        system=system_prompt
+        ]
     )
 
-    response_text = message.content[0].text
+    response_text = response.choices[0].message.content
 
     # Parse the JSON response
     try:
@@ -329,7 +332,7 @@ Provide your evaluation as a JSON object (no markdown formatting, just the raw J
         analysis = json.loads(response_text.strip())
         return analysis
     except json.JSONDecodeError:
-        print("Warning: Could not parse Claude's response as JSON")
+        print("Warning: Could not parse LLM response as JSON")
         return {"raw_response": response_text}
 
 
@@ -440,8 +443,11 @@ def generate_rating_report(username, analysis, total_commits):
 
 
 def parse_job_description(jd_text):
-    """Use Claude to parse a job description into structured requirements."""
-    client = anthropic.Anthropic()
+    """Use LLM to parse a job description into structured requirements."""
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.environ.get("OPENROUTER_API_KEY")
+    )
 
     system_prompt = """You are a job description parser. Extract structured information from job descriptions.
 
@@ -458,14 +464,16 @@ You must respond with a valid JSON object (no markdown, no code blocks) with thi
 
 Be precise. If something isn't mentioned, use empty arrays or "unspecified"."""
 
-    message = client.messages.create(
-        model="claude-sonnet-4-20250514",
+    response = client.chat.completions.create(
+        model="xiaomi/mimo-v2-flash",
         max_tokens=1024,
-        messages=[{"role": "user", "content": f"Parse this job description:\n\n{jd_text}"}],
-        system=system_prompt
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Parse this job description:\n\n{jd_text}"}
+        ]
     )
 
-    response_text = message.content[0].text
+    response_text = response.choices[0].message.content
     try:
         if "```json" in response_text:
             response_text = response_text.split("```json")[1].split("```")[0]
@@ -518,7 +526,10 @@ def search_github_users(headers, language=None, location=None, experience_level=
 
 def analyze_candidate_for_job(username, commit_summaries, jd_requirements):
     """Analyze a candidate's commits against specific job requirements."""
-    client = anthropic.Anthropic()
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.environ.get("OPENROUTER_API_KEY")
+    )
 
     commits_text = ""
     for c in commit_summaries:
@@ -592,14 +603,16 @@ COMMIT HISTORY:
 
 Provide evaluation as JSON."""
 
-    message = client.messages.create(
-        model="claude-sonnet-4-20250514",
+    response = client.chat.completions.create(
+        model="xiaomi/mimo-v2-flash",
         max_tokens=2048,
-        messages=[{"role": "user", "content": user_prompt}],
-        system=system_prompt
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
     )
 
-    response_text = message.content[0].text
+    response_text = response.choices[0].message.content
     try:
         if "```json" in response_text:
             response_text = response_text.split("```json")[1].split("```")[0]
@@ -782,12 +795,12 @@ Examples:
         print("Set GITHUB_TOKEN env var or use --token flag.\n")
 
     # Check for API key (required for matching mode, optional for single user with --no-rate)
-    has_api_key = bool(os.environ.get("ANTHROPIC_API_KEY"))
+    has_api_key = bool(os.environ.get("OPENROUTER_API_KEY"))
 
     # === MATCHING MODE ===
     if args.match:
         if not has_api_key:
-            print("Error: ANTHROPIC_API_KEY required for matching mode.")
+            print("Error: OPENROUTER_API_KEY required for matching mode.")
             print("Please add it to your .env file.")
             return
 
@@ -924,14 +937,14 @@ Examples:
     # Run Claude analysis by default (unless --no-rate is set)
     if not args.no_rate:
         # Check for API key
-        if not os.environ.get("ANTHROPIC_API_KEY"):
-            print("\nError: ANTHROPIC_API_KEY not found in environment.")
+        if not os.environ.get("OPENROUTER_API_KEY"):
+            print("\nError: OPENROUTER_API_KEY not found in environment.")
             print("Please add it to your .env file.")
             return
 
         # Prepare and analyze commits
         commit_summaries = prepare_commits_for_analysis(all_commits, patches)
-        analysis = analyze_commits_with_claude(username, commit_summaries)
+        analysis = analyze_commits_with_llm(username, commit_summaries)
 
         # Generate and display report
         report = generate_rating_report(username, analysis, len(all_commits))

@@ -19,7 +19,7 @@ from github_commits import (
     get_commits_for_repo,
     get_commit_patch,
     prepare_commits_for_analysis,
-    analyze_commits_with_claude,
+    analyze_commits_with_llm,
     generate_rating_report,
     parse_job_description,
     search_github_users,
@@ -84,9 +84,9 @@ def analyze():
             patch = get_commit_patch(item["owner"], item["repo"], sha, headers)
             patches[sha] = patch or ""
 
-        # Analyze with Claude
+        # Analyze with LLM
         commit_summaries = prepare_commits_for_analysis(all_commits, patches)
-        analysis = analyze_commits_with_claude(username, commit_summaries)
+        analysis = analyze_commits_with_llm(username, commit_summaries)
 
         return render_template(
             "profile.html",
@@ -207,8 +207,8 @@ def export_results():
 
 if __name__ == "__main__":
     # Check for required environment variables
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        print("Warning: ANTHROPIC_API_KEY not set. Analysis features will not work.")
+    if not os.environ.get("OPENROUTER_API_KEY"):
+        print("Warning: OPENROUTER_API_KEY not set. Analysis features will not work.")
     if not os.environ.get("GITHUB_TOKEN"):
         print("Warning: GITHUB_TOKEN not set. You may hit rate limits.")
 
